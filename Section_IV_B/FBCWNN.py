@@ -342,11 +342,6 @@ class FixedBasisCWNN(nn.Module):
     def process_trajectory_data(self):
         """
         Post-Phase 1 processing: Estimate f through numerical differentiation
-        
-        This is the key step:
-        1. Perform numerical differentiation on recorded trajectory to get ẋ_d
-        2. Use f(x) ≈ ẋ_d - u to estimate nonlinear term
-        3. Construct training data (x, f_estimated)
         """
         print(f"\n[Data Processing] Processing {len(self.trajectory_buffer)} trajectory points...")
         
@@ -467,7 +462,6 @@ class FixedBasisCWNN(nn.Module):
         
         # Train current structure
         current_error = self._train_current_structure(X_data, F_data)
-        print(f"  Initial error: {current_error:.6f}")
         
         # Progressive expansion (using parent-child mechanism)
         layer_idx = 1
@@ -509,7 +503,6 @@ class FixedBasisCWNN(nn.Module):
             
             # Retrain
             current_error = self._train_current_structure(X_data, F_data)
-            print(f"  Current error: {current_error:.6f}")
             
             layer_idx += 1
             
@@ -559,7 +552,7 @@ class FixedBasisCWNN(nn.Module):
         """
         Generate child centers from parent centers (consistent with AFBCWNN)
         
-        For each parent center, generate 2^d child centers (doubling + offset)
+        For each parent center, generate 2^d child centers 
         """
         if len(parent_centers) == 0:
             return torch.tensor([], device=self.device, dtype=torch.long)
@@ -984,7 +977,6 @@ def run_fbcwnn_experiment():
     
     t_span_phase1 = torch.linspace(0, data_collection_time, n_steps).to(device)
     
-    print(f"Running PID controller for {data_collection_time}s...")
     
     states_phase1 = odeint(
         model,

@@ -1,6 +1,5 @@
 # AFBCWNN: Adaptive Frequency-Based Constructive Wavelet Neural Network
 # This implementation includes optional disturbance testing and memory optimization
-# Key features: limited autodiff cache, RSS memory monitoring, adaptive dwell time
 
 import os
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
@@ -670,15 +669,25 @@ class HybridWaveletControl(nn.Module):
                         print(f"Stage 3: System stabilized!")
                         print(f"{'='*50}\n")
                         self.stage = 3
-                        self.stop_flag = True
+                        self.stop_flag = False
+                        """
+                        The values of the two parameters "self.stop_flag = True" and "time_max" determine whether the system stops. 
+                        We cannot let the simulation run forever; here setting "self.stop_flag = False" means the system should 
+                        proceed to stage 3. The exact parameter settings are decided by the user.
+                        """
                     else:
                         print(f"  ✗ Stage 2: Error not satisfied, need recovery...")
                         self._execute_recovery()
                 
                 elif self.stage == 3 and not self.stop_flag:
                     if max_error <= self.delta_ac:
-                        print(f"  ✓ Stage 3: Error satisfied after recovery")
-                        self.stop_flag = True
+                        #print(f"  ✓ Stage 3: Error satisfied after recovery")
+                        self.stop_flag = False
+                        """
+                        Here, "self.stop_flag = False" means that the system will stop only when the time reaches "time_max". 
+                        The exact parameter settings are decided by the user. You can also set "self.stop_flag = True", 
+                        which means the system will stop before "time_max" once the specified condition is met.
+                        """
                     else:
                         print(f"  ✗ Stage 3: Still not satisfied, continuing recovery...")
                         self._execute_recovery()
@@ -1409,7 +1418,7 @@ if __name__ == "__main__":
         'mu': 1/3,
         'tran_r': 1,
         'base_interval': 120,
-        'time_max': 1201,
+        'time_max': 841,
         'max_layers': 5,
 
         # Cache control

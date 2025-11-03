@@ -469,6 +469,7 @@ def evaluate_controller(config):
         if controller.mode == 'collect':
             u = controller.pid_control(delta)
             mode = 'PID'
+            controller.sequence_buffer.append(obs)
         elif controller.mode == 'pretrain':
             u = controller.select_action(obs, deterministic=False)
             u = np.clip(u, *config.control_bounds)
@@ -545,7 +546,6 @@ def evaluate_controller(config):
     print(f"\n{'='*70}")
     print("Evaluation Complete")
     print(f"Total steps: {controller.step_count}")
-    print(f"Transformer control: {controller.stats['transformer_actions']/(controller.step_count-config.pretrain_steps)*100:.1f}%")
     print(f"{'='*70}\n")
     
     return controller

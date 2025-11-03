@@ -1,6 +1,6 @@
-# ACWNN: Adaptive Constructive Wavelet Neural Network (No Pruning Version)
+# ACWNN: Adaptive Constructive Wavelet Neural Network (No Pruning, \mu=1)
 # This is the baseline ACWNN without pruning/freezing mechanisms
-# Key features: Optional disturbance testing, adaptive dwell time, continuous layer expansion
+# Key features: Optional disturbance testing, continuous layer expansion
 # Users can toggle disturbance testing on/off via configuration
 
 import os
@@ -77,7 +77,7 @@ class AdaptiveWaveletControl(nn.Module):
     
     This is the baseline comparison method without pruning/freezing mechanisms.
     Key differences from full ACWNN:
-    - No pruning stage (always remains in Stage 1)
+    - No pruning stage (always remains in Stage 1, \mu  = 1)
     - No weight freezing
     - No parameter removal
     - Continuous network expansion based on error threshold

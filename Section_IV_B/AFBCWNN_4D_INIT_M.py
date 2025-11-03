@@ -1,12 +1,5 @@
 """
-Simplified Initial Resolution Estimator for AFBCWNN
-
-Key modifications:
-1. EMA calculation uses each layer's own update count
-2. Added 4D system configuration support
-
-Author: Based on ACWNN framework
-Date: 2025
+Initial Resolution Estimator for AFBCWNN
 """
 
 import os
@@ -539,7 +532,7 @@ class SimplifiedResolutionEstimator(nn.Module):
         3. Peak detection: E_bar_{m-1} >= E_hat_m
         """
         print("\n" + "="*70)
-        print(f"Simplified Initial Resolution Estimation (Corrected Algorithm)")
+        print(f"Initial Resolution Estimation")
         print("="*70)
         
         # Step 1: Initialize W1 with equidistant sampling
@@ -642,7 +635,6 @@ class SimplifiedResolutionEstimator(nn.Module):
             
             current_state = final_state
             
-            print(f"    Max |delta|: {max_loss:.6f}, Mean |delta|: {mean_loss:.6f}")
             
             energy_history['max_loss'].append(max_loss)
             energy_history['mean_loss'].append(mean_loss)
@@ -747,76 +739,6 @@ class SimplifiedResolutionEstimator(nn.Module):
         return alpha
 
 
-def plot_energy_history(energy_history, title_suffix="", save_path=None):
-    """Visualize energy history"""
-    fig, axes = plt.subplots(2, 2, figsize=(14, 10))
-    
-    layers_history = energy_history['layers_history']
-    resolutions = energy_history['resolution']
-    
-    # Plot 1: E_hat evolution for all layers
-    ax1 = axes[0, 0]
-    for layer_idx, layer_hist in layers_history.items():
-        iterations = list(range(layer_idx + 1, layer_idx + 1 + len(layer_hist['E_hat'])))
-        ax1.plot(iterations, layer_hist['E_hat'], 'o-', 
-                label=f"Layer {layer_idx} (m={layer_hist['resolution']}) E_hat", 
-                linewidth=2, markersize=6)
-    
-    ax1.set_xlabel('Iteration', fontsize=12)
-    ax1.set_ylabel('Energy E_hat (corrected)', fontsize=12)
-    ax1.set_title(f'Energy Evolution (All Layers) {title_suffix}', fontsize=13)
-    ax1.legend(fontsize=9)
-    ax1.grid(True, alpha=0.3)
-    ax1.set_yscale('log')
-    
-    # Plot 2: E_bar evolution for all layers
-    ax2 = axes[0, 1]
-    for layer_idx, layer_hist in layers_history.items():
-        iterations = list(range(layer_idx + 1, layer_idx + 1 + len(layer_hist['E_bar'])))
-        ax2.plot(iterations, layer_hist['E_bar'], 's-', 
-                label=f"Layer {layer_idx} E_bar", 
-                linewidth=2, markersize=6)
-    
-    ax2.set_xlabel('Iteration', fontsize=12)
-    ax2.set_ylabel('EMA E_bar', fontsize=12)
-    ax2.set_title(f'EMA Evolution (Peak Detection) {title_suffix}', fontsize=13)
-    ax2.legend(fontsize=9)
-    ax2.grid(True, alpha=0.3)
-    ax2.set_yscale('log')
-    
-    # Plot 3: Tracking error
-    ax3 = axes[1, 0]
-    ax3.plot(resolutions, energy_history['max_loss'], 'o-', 
-             label='Max |delta|', linewidth=2)
-    ax3.plot(resolutions, energy_history['mean_loss'], 's-', 
-             label='Mean |delta|', linewidth=2)
-    ax3.set_xlabel('Resolution m', fontsize=12)
-    ax3.set_ylabel('Tracking Error', fontsize=12)
-    ax3.set_title(f'Tracking Error {title_suffix}', fontsize=13)
-    ax3.legend(fontsize=11)
-    ax3.grid(True, alpha=0.3)
-    ax3.set_yscale('log')
-    
-    # Plot 4: Computation time
-    ax4 = axes[1, 1]
-    ax4.plot(resolutions, energy_history['odeint_time'], 'o-', 
-             linewidth=2, color='purple')
-    ax4.set_xlabel('Resolution m', fontsize=12)
-    ax4.set_ylabel('odeint Time (s)', fontsize=12)
-    ax4.set_title(f'Computation Time {title_suffix}', fontsize=13)
-    ax4.grid(True, alpha=0.3)
-    
-    plt.tight_layout()
-    
-    if save_path is None:
-        save_path = 'energy_estimation.pdf'
-    
-    plt.savefig(save_path, format='pdf', dpi=300, bbox_inches='tight')
-    print(f"  Plot saved: {save_path}")
-    
-    plt.show()
-    return fig
-
 
 if __name__ == "__main__":
     import platform
@@ -879,8 +801,8 @@ if __name__ == "__main__":
     # Select configuration
     print("="*70)
     print("Select System Configuration:")
-    print("  1. 2D system (custom)")
-    print("  2. 4D system (from File2)")
+    print("  1. 2D system ")
+    print("  2. 4D system ")
     print("="*70)
     
     choice = input("Enter choice (1 or 2, default=1): ").strip()
@@ -897,14 +819,13 @@ if __name__ == "__main__":
     initial_state = torch.zeros(config['system_order'] + 1, device=device)
     
     print("\n" + "="*70)
-    print(f"Simplified Initial Resolution Estimator - {system_name} System")
+    print(f" Initial Resolution Estimator - {system_name} System")
     print("="*70)
     print(f"System order: {config['system_order']}")
     print(f"Lambda: {config['lambda_c']}, Beta: {config['beta']}")
     print(f"Dwell time per resolution: {config['dwell_time']}s")
-    print("\nKEY CORRECTIONS:")
-    print("  1. EMA uses each layer's own update count (not global)")
-    print("  2. First update: E_bar = E_hat (ensured)")
+    print("  1. EMA uses each layer's own update count ")
+    print("  2. First update: E_bar = E_hat ")
     print("  3. Formula: E_bar_k = (alpha*E_bar_{k-1} + (1-alpha)*E_hat_k) / (1-alpha^k)")
     print("="*70)
     
@@ -921,9 +842,6 @@ if __name__ == "__main__":
     total_time = time.time() - start
     
     print(f"\nTotal time: {total_time:.2f}s")
-    
-    # Visualization
-    plot_energy_history(hist, f"({system_name})", f"energy_estimation_{save_prefix}.pdf")
     
     # Save to Excel
     layers_history = hist['layers_history']

@@ -1,10 +1,8 @@
-# RBF Adaptive Controller - Simplified Data Version
+# RBF Adaptive Controller 
 # Features:
 # - Two network configurations: RBF-256 (256 centers) and RBF-625 (625 centers)
 # - Optional disturbance testing (toggle via configuration)
-# - High-precision computation (480,000 points) for accuracy
-# - Downsampled Excel output (10,000 points) for visualization
-# - Weight update: ACWNN-style 
+# - Weight update: AFBCWNN-style 
 
 import numpy as np
 import torch
@@ -281,7 +279,7 @@ def train_rbf_controller(num_centers=256, network_name="RBF-256",
     print(f"\n{'='*60}")
     print(f"Training {network_name}")
     print(f"{'='*60}")
-    print(f"Update method: ACWNN-style (augmented error only)")
+    print(f"Update method: AFBCWNN-style (augmented error only)")
     print(f"Control params: β={beta}, λ={lam}")
     print(f"Duration: {T_total}s, Step: {dt}s")
     print(f"Total steps: {num_steps} (full precision)")
@@ -319,8 +317,6 @@ def train_rbf_controller(num_centers=256, network_name="RBF-256",
         # Get basis functions
         phi = rbf_net.basis_functions(x_tensor)
         
-        # ACWNN method: gradient using augmented error only
-        # Key: Does not use f_true (unknown in practice), only uses delta
         grad = delta * phi
         
         # Manual ADAM update with control-theoretic gradient
@@ -416,7 +412,7 @@ def train_rbf_controller(num_centers=256, network_name="RBF-256",
 
 
 def save_single_network_excel(results, filename):
-    """Save network data to Excel (simplified version)"""
+    """Save network data to Excel """
     
     # Sheet1: Main data (downsampled, for plotting)
     df_main = pd.DataFrame({
@@ -482,7 +478,7 @@ def save_single_network_excel(results, filename):
 
 
 def create_comparison_plots(results_256, results_625, output_dir):
-    """Create comparison plots (using full precision data)"""
+    """Create comparison plots """
     
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     

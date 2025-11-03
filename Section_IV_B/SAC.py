@@ -585,7 +585,6 @@ def evaluate_controller(config):
     print(f"\n{'='*70}")
     print("Evaluation Complete")
     print(f"Total steps: {controller.step_count}")
-    print(f"SAC control: {controller.stats['sac_actions']/(controller.step_count-config.pretrain_steps)*100:.1f}%")
     print(f"{'='*70}\n")
     
     return controller
