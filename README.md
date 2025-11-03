@@ -79,7 +79,7 @@ python Section_IV-B/AFBCWNN_4D_INIT_M.py
 
 This step computes the optimal starting resolution `m*` based on energy estimation (Algorithm 1, lines 6-21).
 
-**Mechanism**: By progressively increasing resolution and computing subspace energy, when Eₘ₋₁ ≥ Êₘ, the main energy is concentrated at resolution m-1, thus determining the initial structure.
+**Mechanism**: By progressively increasing resolution and computing subspace energy, when E̅ₘ₋₁ ≥ Êₘ, the main energy is concentrated at resolution m-1, thus determining the initial structure.
 
 #### Step 2: Run Main Control Loop
 ```python
@@ -111,43 +111,22 @@ python Section_IV-B/TRANSFORM.py      # Transformer sequence policy
 
 These two structures demonstrate that fixed-structure adaptive neural networks cannot guarantee desired tracking performance even with more parameters.
 
-## 📊 Experimental Results
-
-### Tracking Performance (4D System, Table III-IV)
-
-| Method | Parameters | Steady-State Error (δ̄ᵢ) | With Disturbance (δ̄ᵢ) |
-|--------|------------|-------------------------|------------------------|
-| **AFBCWNN** | **~120** | **0.0526** | **0.04** |
-| ACWNN | ~800 | 0.0175 | 0.05 |
-| RBF-256 | 256 | 2.3 | 2.9 |
-| RBF-625 | 625 | 2.9 | 3.6 |
-| FBCWNN | ~160 | 0.3611 | - |
-| SAC | 54.5k | 3.3972 | - |
-| Transformer | 540k | 3.4436 | - |
-
-**Key Observations**:
-- AFBCWNN achieves **6.7× fewer parameters** than ACWNN with comparable accuracy
-- **86% parameter reduction** compared to RBF-625 while maintaining superior performance
-- **Robust to disturbances**: Recovers to δ̄ᵢ ≈ 0.04 within [3ΔT, 5ΔT]
-- FBCWNN plateaus at steady-state error 0.36 due to lack of online adaptation
-- Model-free methods (SAC, Transformer) struggle to converge with limited data
-
-## 🎛️ Configuration Guide
+##  Configuration Guide
 
 ### Core Hyperparameters (Algorithm 1)
 
-| Parameter | Description | Typical Range | Default |
+| Parameter | Description | Typical Range | Default(2D/4D) |
 |-----------|-------------|---------------|---------|
 | `μ` | Energy separation factor | (0, 1) | 1/3 |
 | `ς` | Sampling ratio for initial basis | (1/3, 2/3) | 0.36 |
-| `δ_ac` | Target tracking accuracy | - | 0.12 |
-| `δ°_ac` | Auxiliary accuracy (stricter) | - | 0.07 |
+| `δ_ac` | Target tracking accuracy | - | 0.12/0.05 |
+| `δ°_ac` | Auxiliary accuracy (stricter) | - | 0.07/0.04 |
 | `ΔT` | Dwell time (seconds) | - | 120 |
 | `N_d` | Termination counter | [1, 3] | 1 |
-| `ξ_r` | Pruning threshold | - | 0.02 |
-| `ξ_h` | Freezing threshold | - | 0.02 |
-| `λ` | Augmented error gain | [2, 20] | 2.0 |
-| `β` | Feedback gain | [10, 20] | 10.0 |
+| `ξ_r` | Pruning threshold | - | 0.1/0.02 |
+| `ξ_h` | Freezing threshold | - | 0.1/0.02 |
+| `λ` | Augmented error gain | [2, 20] | 20.0/2.0 |
+| `β` | Feedback gain | [10, 20] | 20.0/10.0 |
 
 **Parameter Guidelines**:
 - **μ**: Controls the proportion of bases added per expansion. Smaller values allow finer-grained expansion (fewer bases per step), while larger values accelerate convergence but may introduce redundancy.
@@ -180,7 +159,7 @@ RBF_NODES = 256   # 4×4×4×4 grid (moderate complexity)
 RBF_NODES = 625   # 5×5×5×5 grid (high complexity)
 ```
 
-## 📖 Algorithm Overview
+## Algorithm Overview
 
 ### Algorithm 1: Incremental Module in AFBCWNN
 
@@ -189,8 +168,8 @@ RBF_NODES = 625   # 5×5×5×5 grid (high complexity)
 1. Start with coarsest subspace W₁
 2. Run system for dwell time ΔT
 3. Compute energy estimate Êₘ via adaptive law
-4. Calculate EMA: Eₘ = (αEₘ₋₁ + (1-α)Êₘ) / (1-αᵐ)
-5. If Eₘ₋₁ ≥ Êₘ, set m* = m-1 and exit
+4. Calculate EMA: E̅ₘ = (αE̅ₘ₋₁ + (1-α)Êₘ) / (1-αᵐ)
+5. If E̅ₘ₋₁ ≥ Êₘ, set m* = m-1 and exit
 6. Else, expand to Wₘ₊₁ and repeat
 ```
 
@@ -214,44 +193,18 @@ RBF_NODES = 625   # 5×5×5×5 grid (high complexity)
 4. Freeze bases with Γ(θ̂ₘ,ₙ) < ξ_h
 ```
 
-**Key Mechanisms**:
-- **Top-μ̄ energy basis selection**: For each basis in subspace Wₘ, compute energy contribution ω̂²ₘₙ‖ψ̂ₘₙ‖², rank in descending order, and cumulatively select bases contributing μ̄·Êₘ energy.
-- **Nearest-neighbor expansion**: For each selected center [Kₘ,ᵢₘ₁, ..., Kₘ,ᵢₘ_d], find the 2 nearest centers along each dimension in Wₘ₊₁, generating 2^d new centers via Cartesian product.
-- **Pruning and freezing**: After achieving δ°_ac, remove bases with weights below ξ_r, suspend updates for bases with weight variation below ξ_h, reducing computational cost.
-
-## 📚 Citation
-
-If you use this code in your research, please cite:
-```bibtex
-@inproceedings{huang2025afbcwnn,
-  title={Adaptive Frequency-Based Constructive Wavelet Neural Network for Nonlinear Dynamic Systems},
-  author={Huang, D. and Shen, D. and Lu, L. and Tan, Y.},
-  booktitle={AWC Conference},
-  year={2025}
-}
-```
-
-## 🔗 Related Work
+##  Related Work
 
 - **FBCWNN** (offline, static): [Optimizing Basis Function Selection in Constructive Wavelet Neural Networks](https://arxiv.org/abs/2507.09213)
 - **ACWNN** (online, no frequency guidance): J.-X. Xu and Y. Tan, "Nonlinear adaptive wavelet control using constructive wavelet networks," IEEE Trans. Neural Networks, 2007
 
-## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
+##  Foundation
 
 - Wavelet theory foundations: Mallat's multiresolution analysis
 - Adaptive control framework: Lyapunov-based stability theory
 - Baseline implementations: PyWavelets, PyTorch
 
-## 📧 Contact
-
-For questions or collaboration inquiries:
-- **Email**: dshuangdd@example.com
-- **Issues**: [GitHub Issues](https://github.com/dshuangdd/AFBCWNN/issues)
-
 ---
 
-**⚠️ Note**: This is a research prototype. For production use, additional testing and validation are recommended.
+** Note**: This is a research prototype. For production use, additional testing and validation are recommended.
