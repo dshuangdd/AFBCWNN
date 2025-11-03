@@ -6,7 +6,7 @@ Official implementation of "Adaptive Frequency-Based Constructive Wavelet Neural
 
 This repository contains the official implementation of **AFBCWNN**, a novel adaptive neural network architecture for tracking control of unknown nonlinear dynamic systems. The key innovation is leveraging frequency-domain analysis to guide network structure construction and parameter adaptation, achieving superior tracking accuracy with significantly fewer parameters compared to existing methods.
 
-### Key Features
+### Key Features 
 
 -  **Frequency-guided structure initialization**: Automatically determines optimal initial network structure based on energy distribution
 -  **Dynamic structure adaptation**: Incrementally adds high-energy wavelet bases and prunes redundant nodes
